@@ -1,11 +1,13 @@
 package com.example.fcm;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -39,12 +41,7 @@ public class MyService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "servise onCreate");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANEL_ID, CHANEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription(CHANEL_DESC);
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
-        }
+
 
 //        displayNotification("onCreate");
 
@@ -74,7 +71,7 @@ public class MyService extends Service {
 
 //        Log.d(TAG, "servise started");
 
-        return START_NOT_STICKY;// super.onStartCommand(intent, flags, startId);
+        return START_STICKY;// super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -94,12 +91,30 @@ public class MyService extends Service {
                 .setContentText(text)
                 .setContentTitle("TitleInServise")
                 .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-//        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANEL_ID, CHANEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(CHANEL_DESC);
+            channel.enableLights(true);
+            channel.setLightColor(Color.RED);
+            channel.enableVibration(true);
+
+            mBuilder.setChannelId(CHANEL_ID);
+            Log.d(TAG, "VERsionO");
+//            NotificationManager manager = getSystemService(NotificationManager.class);
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
+        } else {
+            mBuilder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
+        }
+
+
+        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
 
         Log.d(TAG, "displey NOTIF " + text);
-//        managerCompat.notify(1, mBuilder.build());
-        startForeground(1, mBuilder.build());
+        managerCompat.notify(1, mBuilder.build());
+//        startForeground(1, mBuilder.build());
     }
 }
